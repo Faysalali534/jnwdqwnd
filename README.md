@@ -16,21 +16,93 @@ This pipeline is designed to address the challenges of tracking and analyzing mi
 
 ## 📐 System Architecture
 
-A detailed diagram of the system architecture can be found in [`architecture_diagram.md`](./architecture_diagram.md).
+```mermaid
+graph TD
+    subgraph "Data Sources"
+        A[eCommerce Pixel/Webhook]
+        B[Meta Ads API]
+        C[Google Ads API]
+    end
 
-The pipeline consists of several layers, each with a specific responsibility:
+    subgraph "Ingestion & Storage"
+        D[Cloud Run Ingestion API] --> E[Pub/Sub Topic]
+        E --> F[GCS Raw Data Lake]
+        E --> G[ClickHouse Raw Events Table]
+        H[Airbyte Connectors] --> G
+        B --> H
+        C --> H
+    end
 
-1.  **Ingestion:** A containerized Node.js API on Cloud Run receives events and publishes them to a Pub/Sub topic.
-2.  **Storage:** Raw events are stored in a Google Cloud Storage data lake for auditing and replay, while the analytical data is stored in a high-performance ClickHouse database.
-3.  **Processing:** A Cloud Function loads data from Pub/Sub into ClickHouse in micro-batches. Airbyte is used to sync third-party API data, and dbt is used to transform and model the data for reporting.
-4.  **Serving:** A lightweight reporting API on Cloud Run exposes analytical endpoints, and the data is ready to be connected to a BI tool like Looker Studio.
-5.  **Orchestration & CI/CD:** GitHub Actions automates the entire deployment process, and Cloud Scheduler can be used for scheduling tasks.
+    subgraph "Processing"
+        I[dbt]
+        G -- Reads from --> I
+        F -- Batch Load (Optional) --> G
+        I -- Writes to --> J[ClickHouse Reporting Tables]
+    end
+
+    subgraph "Serving & Orchestration"
+        J --> K[Looker Studio Dashboards]
+        J --> L[Reporting API]
+        M[GitHub Actions CI/CD]
+        N[Cloud Scheduler]
+
+        M -- Deploys --> D
+        M -- Deploys --> I
+        M -- Deploys --> H
+        N -- Triggers --> H
+    end
+
+    A -- HTTP --> D
+
+    style D fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#DB4437,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#F4B400,stroke:#333,stroke-width:2px,color:#fff
+    style G fill:#0F9D58,stroke:#333,stroke-width:2px,color:#fff
+    style H fill:#9E9E9E,stroke:#333,stroke-width:2px,color:#fff
+    style I fill:#FF6D00,stroke:#333,stroke-width:2px,color:#fff
+    style J fill:#0F9D58,stroke:#333,stroke-width:2px,color:#fff
+    style K fill:#673AB7,stroke:#333,stroke-width:2px,color:#fff
+    style L fill:#673AB7,stroke:#333,stroke-width:2px,color:#fff
+    style M fill:#24292E,stroke:#333,stroke-width:2px,color:#fff
+    style N fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
+```
 
 ## 💾 Database Design
 
-A detailed diagram of the database schema can be found in [`database_diagram.md`](./database_diagram.md).
+```mermaid
+erDiagram
+    events_raw {
+        UUID event_id PK
+        String client_id
+        DateTime64 received_at
+        String event_source
+        String event_type
+        String payload
+    }
 
-The analytical database schema in ClickHouse is designed for high-performance time-series analysis.
+    fact_conversions {
+        UUID conversion_id PK
+        String client_id
+        DateTime converted_at
+        String user_id
+        String device_id
+        Float revenue
+        String currency
+    }
+
+    fact_ad_performance {
+        Date date PK
+        String source PK
+        String campaign_id PK
+        String campaign_name
+        Float ad_spend
+        Int clicks
+        Int impressions
+    }
+
+    events_raw ||--o{ fact_conversions : "dbt model"
+    events_raw ||--o{ fact_ad_performance : "Airbyte + dbt"
+```
 
 ## 🛠️ Getting Started
 
