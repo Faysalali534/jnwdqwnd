@@ -19,32 +19,32 @@ This pipeline is designed to address the challenges of tracking and analyzing mi
 ```mermaid
 graph TD
     subgraph "Data Sources"
-        A[eCommerce Pixel/Webhook]
-        B[Meta Ads API]
-        C[Google Ads API]
+        A["fa:fa-shopping-cart Pixel/Webhook"]
+        B["fa:fa-meta Meta Ads API"]
+        C["fa:fa-google Google Ads API"]
     end
 
     subgraph "Ingestion & Storage"
-        D[Cloud Run Ingestion API] --> E[Pub/Sub Topic]
-        E --> F[GCS Raw Data Lake]
-        E --> G[ClickHouse Raw Events Table]
-        H[Airbyte Connectors] --> G
+        D["fa:fa-server Cloud Run API"] --> E["fa:fa-envelope Pub/Sub"]
+        E --> F["fa:fa-database GCS Raw Lake"]
+        E --> G["fa:fa-database ClickHouse Raw"]
+        H["fa:fa-plane Airbyte"] --> G
         B --> H
         C --> H
     end
 
     subgraph "Processing"
-        I[dbt]
+        I["fa:fa-cogs dbt"]
         G -- Reads from --> I
-        F -- Batch Load (Optional) --> G
-        I -- Writes to --> J[ClickHouse Reporting Tables]
+        F -- Batch Load --> G
+        I -- Writes to --> J["fa:fa-table ClickHouse Reporting"]
     end
 
     subgraph "Serving & Orchestration"
-        J --> K[Looker Studio Dashboards]
-        J --> L[Reporting API]
-        M[GitHub Actions CI/CD]
-        N[Cloud Scheduler]
+        J --> K["fa:fa-chart-bar Looker Studio"]
+        J --> L["fa:fa-code Reporting API"]
+        M["fa:fa-github GitHub Actions"]
+        N["fa:fa-clock Cloud Scheduler"]
 
         M -- Deploys --> D
         M -- Deploys --> I
@@ -54,6 +54,9 @@ graph TD
 
     A -- HTTP --> D
 
+    style A fill:#111,stroke:#333,stroke-width:2px,color:#fff
+    style B fill:#0066ff,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
     style D fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
     style E fill:#DB4437,stroke:#333,stroke-width:2px,color:#fff
     style F fill:#F4B400,stroke:#333,stroke-width:2px,color:#fff
