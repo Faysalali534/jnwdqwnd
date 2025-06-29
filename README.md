@@ -19,32 +19,32 @@ This pipeline is designed to address the challenges of tracking and analyzing mi
 ```mermaid
 graph TD
     subgraph "Data Sources"
-        A["fa:fa-shopping-cart Pixel/Webhook"]
-        B["fa:fa-meta Meta Ads API"]
-        C["fa:fa-google Google Ads API"]
+        A["🛒 Pixel/Webhook"]
+        B["META Meta Ads API"]
+        C["GOOG Google Ads API"]
     end
 
     subgraph "Ingestion & Storage"
-        D["fa:fa-server Cloud Run API"] --> E["fa:fa-envelope Pub/Sub"]
-        E --> F["fa:fa-database GCS Raw Lake"]
-        E --> G["fa:fa-database ClickHouse Raw"]
-        H["fa:fa-plane Airbyte"] --> G
+        D["☁️ Cloud Run API"] --> E["✉️ Pub/Sub"]
+        E --> F["🗄️ GCS Raw Lake"]
+        E --> G["🗄️ ClickHouse Raw"]
+        H["✈️ Airbyte"] --> G
         B --> H
         C --> H
     end
 
     subgraph "Processing"
-        I["fa:fa-cogs dbt"]
+        I["⚙️ dbt"]
         G -- Reads from --> I
         F -- Batch Load --> G
-        I -- Writes to --> J["fa:fa-table ClickHouse Reporting"]
+        I -- Writes to --> J["📊 ClickHouse Reporting"]
     end
 
     subgraph "Serving & Orchestration"
-        J --> K["fa:fa-chart-bar Looker Studio"]
-        J --> L["fa:fa-code Reporting API"]
-        M["fa:fa-github GitHub Actions"]
-        N["fa:fa-clock Cloud Scheduler"]
+        J --> K["📈 Looker Studio"]
+        J --> L["</> Reporting API"]
+        M["📦 GitHub Actions"]
+        N["⏰ Cloud Scheduler"]
 
         M -- Deploys --> D
         M -- Deploys --> I
